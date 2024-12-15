@@ -1,0 +1,41 @@
+# Python bytecode files
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+.venv/
+env/
+venv/
+ENV/
+
+# .env file for environment variables (don't commit sensitive data)
+.env
+
+# IDE/Editor files
+.vscode/
+.idea/
+
+# MacOS Finder folder attributes
+.DS_Store
+
+# Log files
+*.log
+
+# Test output
+*.tox/
+*.nox/
+*.coverage
+*.hypothesis/
+
+# mypy
+.mypy_cache/
+
+# pytest
+.cache/
+
+# Docker related files
+docker-compose.override.yml
+Dockerfile*
+
+# FastAPI specific
+*.db
