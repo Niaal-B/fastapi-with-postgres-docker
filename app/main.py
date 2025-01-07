@@ -12,7 +12,7 @@ class Post(BaseModel):
     title : str
     content : str
     published : bool = True
-    rating : Optional[int] = None
+
 
 try:
     conn = psycopg2.connect(host = 'localhost',database = 'fastapi',user='postgres',password=' ',cursor_factory=RealDictCursor)
@@ -52,15 +52,16 @@ def get_posts():
 
 
 @app.post("/createposts",status_code=201)
-def create_posts(new_post: Post):
-    post_dict = new_post.dict()
-    post_dict['id'] = randrange(0,100000)
-    my_posts.append(post_dict)
-    return {"data" : post_dict }
+def create_posts(post: Post):
+    cursor.execute(""" INSERT INTO posts (title,content,published) VALUES (%s,%s,%s) RETURNING *""", (post.title,post.content,post.published))
+    new_post = cursor.fetchone()
+    conn.commit()
+    return {"data" : new_post }
 
 @app.get("/post/{id}")
 def get_post(id : int,response : Response):
-    post = find_post(id)
+    cursor.execute(""" SELECT * FROM posts WHERE id = %s """ ,(str(id),))
+    post = cursor.fetchone()
     if not post:
         raise HTTPException(status_code=404,detail=f"post with {id} was not found")
         # response.status_code = 404
@@ -70,13 +71,13 @@ def get_post(id : int,response : Response):
 
 @app.delete("/posts/{id}",status_code=204)
 def delete_post(id:int):
-    print(id)
-    index = find_index_post(id)
-
-    if index == None:
+    cursor.execute(""" DELETE FROM posts where id = %s returning *""",(str(id),))
+    deleted_post = cursor.fetchone()
+    conn.commit()
+    if deleted_post == None:
         raise HTTPException(status_code=404,detail=f'post with {id} cannot be find')
 
-    my_posts.pop(index)
+    
     return Response(status_code=204)
 
 @app.put("/posts/{id}")
