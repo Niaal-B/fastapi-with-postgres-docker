@@ -39,3 +39,6 @@ Dockerfile*
 
 # FastAPI specific
 *.db
+
+
+get-pip.py
