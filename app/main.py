@@ -1,13 +1,27 @@
-from fastapi import FastAPI,Response,HTTPException
+from fastapi import FastAPI,Response,HTTPException,Depends,status
 from fastapi.params import Body
 from pydantic import BaseModel
 from typing import Optional
 from random import randrange
 import psycopg2
 
+from fastapi.middleware.cors import CORSMiddleware
+import time
+from . import models
+from .database import engine,get_db
+from sqlalchemy.orm import Session
 from psycopg2.extras import RealDictCursor
-app = FastAPI()
+models.Base.metadata.create_all(bind=engine)
 
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+ 
 class Post(BaseModel):
     title : str
     content : str
@@ -39,29 +53,35 @@ def find_index_post(id):
         if p['id'] == id:
             return i
 
+
+@app.get("/sqlalchemy")
+def test_posts(db:Session = Depends(get_db)):
+    posts = db.query(models.Post).all()
+    return {"data" : posts}
+
+
 @app.get("/")
 async def root():
     return {"message" : "My name is Nihal" }
 
 @app.get("/posts")
-def get_posts():
-    cursor.execute(""" SELECT * FROM posts """)
-    posts = cursor.fetchall()
-    print(posts)
+def get_posts(db:Session=Depends(get_db)):
+    posts = db.query(models.Post).all()
     return {"data" : posts}
 
 
-@app.post("/createposts",status_code=201)
-def create_posts(post: Post):
-    cursor.execute(""" INSERT INTO posts (title,content,published) VALUES (%s,%s,%s) RETURNING *""", (post.title,post.content,post.published))
-    new_post = cursor.fetchone()
-    conn.commit()
+@app.post("/posts",status_code=status.HTTP_201_CREATED)
+def create_posts(post: Post,db:Session=Depends(get_db)):
+    new_post = models.Post(**post.model_dump())
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
+
     return {"data" : new_post }
 
 @app.get("/post/{id}")
-def get_post(id : int,response : Response):
-    cursor.execute(""" SELECT * FROM posts WHERE id = %s """ ,(str(id),))
-    post = cursor.fetchone()
+def get_post(id : int,response : Response,db:Session=Depends(get_db)):
+    post = db.query(models.Post).filter(models.Post.id==id).first()
     if not post:
         raise HTTPException(status_code=404,detail=f"post with {id} was not found")
         # response.status_code = 404
