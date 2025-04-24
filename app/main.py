@@ -7,7 +7,7 @@ import psycopg2
 
 from fastapi.middleware.cors import CORSMiddleware
 import time
-from . import models
+from . import models,schemas
 from .database import engine,get_db
 from sqlalchemy.orm import Session
 from psycopg2.extras import RealDictCursor
@@ -22,10 +22,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
  
-class Post(BaseModel):
-    title : str
-    content : str
-    published : bool = True
 
 
 try:
@@ -54,10 +50,7 @@ def find_index_post(id):
             return i
 
 
-@app.get("/sqlalchemy")
-def test_posts(db:Session = Depends(get_db)):
-    posts = db.query(models.Post).all()
-    return {"data" : posts}
+
 
 
 @app.get("/")
@@ -71,7 +64,7 @@ def get_posts(db:Session=Depends(get_db)):
 
 
 @app.post("/posts",status_code=status.HTTP_201_CREATED)
-def create_posts(post: Post,db:Session=Depends(get_db)):
+def create_posts(post: schemas.PostCreate,db:Session=Depends(get_db)):
     new_post = models.Post(**post.model_dump())
     db.add(new_post)
     db.commit()
@@ -102,7 +95,7 @@ def delete_post(id:int,db:Session=Depends(get_db)):
     return Response(status_code=204)
 
 @app.put("/posts/{id}")
-def update_post(id : int ,updated_post:Post,db:Session=Depends(get_db)):
+def update_post(id : int ,updated_post:schemas.PostCreate,db:Session=Depends(get_db)):
     post_query = db.query(models.Post).filter(models.Post.id==id)
     post = post_query.first()
 
