@@ -29,6 +29,9 @@ def get_post(id: int, db: Session = Depends(get_db),current_user:int =  Depends(
     post = db.query(models.Post).filter(models.Post.id == id).first()
     if not post:
         raise HTTPException(status_code=404, detail=f"Post with id {id} not found")
+
+
+
     return post
 
 # Delete a post
