@@ -6,11 +6,12 @@ from typing import Optional
 class PostBase(BaseModel):
     title : str
     content: str
-    published: bool = True
+    published: bool = True               
 
 class Post(PostBase):
     id: int
-    created_at : datetime
+    created_at : datetime        
+    owner_id : int                            
 
     class Config:
         orm_mode = True
