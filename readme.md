@@ -17,7 +17,7 @@ This is a full-fledged backend API developed using **FastAPI**, implementing rob
 - 🌐 **CORS** configuration for frontend communication
 - 🧪 **Testing** with Pytest, fixtures, and token validation
 - 🐳 **Docker & Docker Compose** setup for containerization
-- 🔄 **CI/CD** pipeline with GitHub Actions
+- 🔄 **CI/CD** pipeline with GitHub Actions(Pending..)
 - 📁 Environment configuration via `.env`
 - 🧹 Clean project structure with separation of concerns
 
